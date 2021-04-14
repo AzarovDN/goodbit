@@ -1,6 +1,9 @@
+import os
+
 import random
 import string
 from pprint import pprint
+
 
 import json
 from django.views.generic import TemplateView
@@ -20,20 +23,15 @@ class GeneratorCodeView(TemplateView):
             amount = form.clean_amount()
             context['result'] = f'Для группы {group_name} сгенерировано {amount} кода и записаны в файл файл "ИМЯ"'
             form = GetParamsForm()
+            generating_codes(group_name, amount)
 
         context['form'] = form
         return context
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+def generating_codes(group_name, amount):
+    promocode_list = []
+    letters_and_digits = string.ascii_letters + string.digits
+    for i in range(amount):
+        promo_code = ''.join(random.sample(letters_and_digits, 5))
+        promocode_list.append(promo_code)
