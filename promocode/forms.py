@@ -19,3 +19,16 @@ class GetParamsForm(forms.Form):
 
     def clean(self):
         return self.cleaned_data
+
+
+class CheckingForm(forms.Form):
+    promocode = forms.CharField(label='Название группы', max_length=5)
+
+    def clean_promocode(self):
+        promocode = self.cleaned_data.get('promocode')
+        if not promocode:
+            raise forms.ValidationError('Введите промокод')
+        return promocode
+
+    def clean(self):
+        return self.cleaned_data

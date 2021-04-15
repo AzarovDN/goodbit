@@ -12,7 +12,7 @@
                 <p>{{ field.label_tag }}</p> {{ field }}
             {{ field.errors }}
             {% endfor %}
-            <p><input type="submit" value="Сгенерировать"/></p>
+            <p><input type="submit" value="Проверить"/></p>
         </form>
     </div>
     <div>
@@ -20,6 +20,7 @@
             <p>{{ result }}</p>
         {% endif %}
     </div>
+    <p><a href="{% url 'promocode:checking' %}">Проверить промокод</a></p>
 
 </body>
 </html>

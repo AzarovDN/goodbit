@@ -2,13 +2,11 @@ import os
 
 import random
 import string
-from pprint import pprint
-
 
 import json
 from django.views.generic import TemplateView
 
-from .forms import GetParamsForm
+from .forms import GetParamsForm, CheckingForm
 
 
 class GeneratorCodeView(TemplateView):
@@ -29,9 +27,77 @@ class GeneratorCodeView(TemplateView):
         return context
 
 
+class CheckingView(TemplateView):
+
+    template_name = 'promocode/checking.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CheckingView, self).get_context_data(**kwargs)
+        form = CheckingForm(self.request.GET or None)  # instance= None
+
+        if form.is_valid():
+            promocode = form.clean_promocode()
+            result = 'код не существует'
+
+            if os.path.isfile('promocode.json'):
+                if os.path.getsize('promocode.json') != 0:
+                    with open('promocode.json') as promo_code_file:
+                        json_dict = json.load(promo_code_file)
+                        for key, value in json_dict.items():
+                            if promocode in value:
+                                result = f'код существует группа = {key}'
+
+            context['result'] = result
+            form = CheckingForm()
+
+        context['form'] = form
+        return context
+
+
+def get_json(group_name, promocode_list):
+    flag = True
+    json_dict = {}
+
+    # Беру данные из файла, если они есть
+    if os.path.isfile('promocode.json'):
+        if os.path.getsize('promocode.json') != 0:
+            flag = False
+            with open('promocode.json') as promo_code_file:
+                json_dict = json.load(promo_code_file)
+
+    with open('promocode.json', 'w', encoding='utf8') as promo_code_file:
+        if flag:
+            json_dict = {group_name: promocode_list}
+            json.dump(json_dict, promo_code_file, indent=4)
+        else:
+            if json_dict.get(group_name):
+                json_dict[group_name] = json_dict[group_name] + promocode_list
+                json.dump(json_dict, promo_code_file, indent=4)
+            else:
+                json_dict[group_name] = promocode_list
+                json.dump(json_dict, promo_code_file, indent=4)
+
+
 def generating_codes(group_name, amount):
     promocode_list = []
+    current_list = []
     letters_and_digits = string.ascii_letters + string.digits
+
+    # создаю список всех промокодов для проверки на повторный промокод
+    if os.path.isfile('promocode.json'):
+        if os.path.getsize('promocode.json') != 0:
+            with open('promocode.json') as promo_code_file:
+                json_dict = json.load(promo_code_file)
+                for _, value in json_dict.items():
+                    current_list += value
+
     for i in range(amount):
-        promo_code = ''.join(random.sample(letters_and_digits, 5))
+        flag = True
+        promo_code = ''
+
+        # Проверяю промокод нет ли повтора
+        while flag:
+            promo_code = ''.join(random.sample(letters_and_digits, 5))
+            flag = promo_code in current_list
         promocode_list.append(promo_code)
+    get_json(group_name, promocode_list)
