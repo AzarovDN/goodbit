@@ -22,7 +22,7 @@ class GetParamsForm(forms.Form):
 
 
 class CheckingForm(forms.Form):
-    promocode = forms.CharField(label='Название группы', max_length=5)
+    promocode = forms.CharField(label='Введите промокод', max_length=5)
 
     def clean_promocode(self):
         promocode = self.cleaned_data.get('promocode')
